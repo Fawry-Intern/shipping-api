@@ -1,0 +1,29 @@
+server:
+  port: 3031
+spring:
+  datasource:
+    driver: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/shipping_db
+    username: postgres
+    password: 12345
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        hbm2ddl.auto: update
+        show_sql: true
+        format_sql: true
+        jdbc:
+          batch_size: 20
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8765/eureka
+
+
