@@ -2,9 +2,12 @@ package com.fawry.shipping_api.entity;
 
 import com.fawry.shipping_api.enums.DayOfWeek;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,20 +17,22 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DeliveryPersonWorkArea {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "work_area_id")
     private Long workAreaId;
 
     @ManyToOne
     @JoinColumn(name = "delivery_person_id", nullable = false)
     private DeliveryPerson deliveryPerson;
 
-    @Column(nullable = false)
+    @Column(name = "governorate_id", nullable = false)
     private Long governorateId;
 
-    @Column(nullable = false)
+    @Column(name = "city_id", nullable = false)
     private Long cityId;
 
     @ElementCollection(targetClass = DayOfWeek.class)
@@ -37,13 +42,11 @@ public class DeliveryPersonWorkArea {
     @Column(name = "work_day", nullable = false)
     private Set<DayOfWeek> workDays;
 
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
