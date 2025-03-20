@@ -42,6 +42,10 @@ public class OrderShipment {
     @Column(name = "customer_phone", nullable = false)
     private String customerPhone;
 
+    @ManyToOne
+    @JoinColumn(name = "delivery_person_id")
+    private DeliveryPerson deliveryPerson;
+
     @Column(name = "tracking_token")
     private String trackingToken;
 
@@ -51,11 +55,6 @@ public class OrderShipment {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ShippingStatus status;
-
-
-    @ManyToOne
-    @JoinColumn(name = "delivery_person_id")
-    private DeliveryPerson deliveryPerson;
 
     @Column(name = "expected_delivery_date")
     private LocalDateTime expectedDeliveryDate;

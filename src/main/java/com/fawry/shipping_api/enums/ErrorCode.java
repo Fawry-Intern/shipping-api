@@ -7,8 +7,8 @@ public enum ErrorCode {
     RESOURCE_ALREADY_EXISTS(HttpStatus.CONFLICT, "Resource already exists"),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Validation failed");
 
-    private final HttpStatus httpStatus;
-    private final String defaultMessage;
+    private HttpStatus httpStatus;
+    private String defaultMessage;
     ErrorCode(HttpStatus status, String defaultMessage){
         this.httpStatus = status;
         this.defaultMessage = defaultMessage;

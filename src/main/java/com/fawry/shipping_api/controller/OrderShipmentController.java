@@ -1,7 +1,6 @@
 package com.fawry.shipping_api.controller;
 
 import com.fawry.shipping_api.dto.OrderShipmentDTO;
-import com.fawry.shipping_api.enums.ShippingStatus;
 import com.fawry.shipping_api.service.OrderShipmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,20 +45,11 @@ public class OrderShipmentController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @PatchMapping("/order-shipments/processed/{id}")
-    public ResponseEntity<OrderShipmentDTO> updateOrderShipmentProcessed(@PathVariable Long id){
-        return new ResponseEntity<>(
-                orderShipmentService.updateOrderShipmentStatus(id, ShippingStatus.PROCESSED)
-                , HttpStatus.OK
-        );
-    }
-
-    @PatchMapping("/order-shipments/shipped/{id}")
-    public ResponseEntity<OrderShipmentDTO> updateOrderShipmentShipped(@PathVariable Long id){
-        return new ResponseEntity<>(
-                orderShipmentService.updateOrderShipmentStatus(id, ShippingStatus.SHIPPED)
-                , HttpStatus.OK
-        );
+    @PatchMapping("/order-shipments/status")
+    public ResponseEntity<OrderShipmentDTO> updateOrderShipmentStatus(
+            @RequestBody OrderShipmentDTO orderShipmentDTO
+    ) {
+        return new ResponseEntity<>(orderShipmentService.updateOrderShipmentStatus(orderShipmentDTO), HttpStatus.OK);
     }
 
     @PostMapping("/order-shipments/confirm-delivery")

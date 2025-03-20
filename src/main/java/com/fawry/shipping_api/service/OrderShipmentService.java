@@ -1,14 +1,13 @@
 package com.fawry.shipping_api.service;
 
 import com.fawry.shipping_api.dto.OrderShipmentDTO;
-import com.fawry.shipping_api.enums.ShippingStatus;
 
 import java.util.List;
 
 public interface OrderShipmentService {
     OrderShipmentDTO createOrderShipment(OrderShipmentDTO orderShipmentDTO);
 
-    OrderShipmentDTO updateOrderShipmentStatus(Long id , ShippingStatus newStatus);
+    OrderShipmentDTO updateOrderShipmentStatus(OrderShipmentDTO orderShipmentDTO);
 
     OrderShipmentDTO getOrderShipmentById(Long id);
 

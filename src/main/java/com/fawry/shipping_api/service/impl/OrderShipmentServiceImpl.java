@@ -1,7 +1,6 @@
 package com.fawry.shipping_api.service.impl;
 
 import com.fawry.shipping_api.dto.OrderShipmentDTO;
-import com.fawry.shipping_api.entity.DeliveryPersonWorkArea;
 import com.fawry.shipping_api.entity.OrderShipment;
 import com.fawry.shipping_api.enums.ShippingStatus;
 import com.fawry.shipping_api.exception.EntityAlreadyExistsException;
@@ -9,7 +8,6 @@ import com.fawry.shipping_api.exception.EntityNotFoundException;
 import com.fawry.shipping_api.exception.EntityValidationException;
 import com.fawry.shipping_api.mapper.OrderShipmentMapper;
 import com.fawry.shipping_api.repository.OrderShipmentRepository;
-import com.fawry.shipping_api.service.DeliveryPersonWorkAreaService;
 import com.fawry.shipping_api.service.OrderShipmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +27,6 @@ import java.util.stream.Collectors;
 public class OrderShipmentServiceImpl implements OrderShipmentService {
     private final OrderShipmentMapper orderShipmentMapper;
     private final OrderShipmentRepository orderShipmentRepository;
-//    private final DeliveryPersonWorkAreaService deliveryPersonWorkAreaService;
 
     @Override
     public OrderShipmentDTO createOrderShipment(OrderShipmentDTO orderShipmentDTO) {
@@ -56,13 +53,14 @@ public class OrderShipmentServiceImpl implements OrderShipmentService {
     }
 
     @Override
-    public OrderShipmentDTO updateOrderShipmentStatus(Long id , ShippingStatus newStatus) {
-        OrderShipment orderShipment = orderShipmentRepository.findById(id)
+    public OrderShipmentDTO updateOrderShipmentStatus(OrderShipmentDTO orderShipmentDTO) {
+        OrderShipment orderShipment = orderShipmentRepository.findById(orderShipmentDTO.shipmentId())
                 .orElseThrow(() -> {
-                    log.error("Order shipment status update failed. No shipment found with ID: {}", id);
-                    throw new EntityNotFoundException("OrderShipment", id);
+                    log.error("Order shipment status update failed. No shipment found with ID: {}", orderShipmentDTO.shipmentId());
+                    throw new EntityNotFoundException("OrderShipment", orderShipmentDTO.shipmentId());
                 });
 
+        ShippingStatus newStatus = orderShipmentDTO.status();
 
         if (orderShipment.getStatus() == newStatus) {
             log.warn("Order shipment status update skipped. Shipment with ID {} is already in status {}.", orderShipment.getOrderId(), newStatus);
@@ -71,12 +69,11 @@ public class OrderShipmentServiceImpl implements OrderShipmentService {
 
         validateStatusTransition(orderShipment, newStatus);
 
-        orderShipment.setStatus(newStatus);
-        if(newStatus == ShippingStatus.SHIPPED) {
-            // TODO: Implement the logic to automated assign delivery person and expected delivery date
-
+        if (newStatus == ShippingStatus.DELIVERED) {
+            orderShipment.setDeliveredAt(LocalDateTime.now());
         }
-        
+
+        orderShipment.setStatus(newStatus);
         log.info("Order shipment with ID {} successfully updated to status {}.", orderShipment.getOrderId(), newStatus);
 
         return orderShipmentMapper.toDTO(orderShipment);
