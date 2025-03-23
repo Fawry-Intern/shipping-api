@@ -2,10 +2,10 @@ package com.fawry.shipping_api.entity;
 
 import com.fawry.shipping_api.enums.DayOfWeek;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,13 +13,12 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "delivery_person_work_areas")
+@Table(name = "work_areas")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DeliveryPersonWorkArea {
-
+public class WorkArea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "work_area_id")

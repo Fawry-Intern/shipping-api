@@ -1,10 +1,10 @@
 package com.fawry.shipping_api.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,19 +17,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class DeliveryPerson {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_person_id")
     private Long personId;
 
-    @Column(name = "name")
+    @Column(name = "delivery_name")
     private String name;
 
-    @Column(name = "email")
+    @Column(name = "delivery_email", unique = true)
     private String email;
 
-    @Column(name = "phone_number", unique = true)
+    @Column(name = "delivery_phone", unique = true)
     private String phoneNumber;
 
     @Column(name = "is_active")
