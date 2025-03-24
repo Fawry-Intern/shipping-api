@@ -2,10 +2,10 @@ package com.fawry.shipping_api.entity;
 
 import com.fawry.shipping_api.enums.ShippingStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderShipment {
-
+public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "shipment_id")
@@ -27,20 +26,9 @@ public class OrderShipment {
     @Column(name = "order_id", nullable = false, unique = true)
     private Long orderId;
 
-    @Column(name = "governorate_id", nullable = false)
-    private Long governorateId;
-
-    @Column(name = "city_id", nullable = false)
-    private Long cityId;
-
-    @Column(name = "customer_address", nullable = false)
-    private String customerAddress;
-
-    @Column(name = "customer_email", nullable = false)
-    private String customerEmail;
-
-    @Column(name = "customer_phone", nullable = false)
-    private String customerPhone;
+    @OneToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "delivery_person_id")
@@ -64,9 +52,9 @@ public class OrderShipment {
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 }

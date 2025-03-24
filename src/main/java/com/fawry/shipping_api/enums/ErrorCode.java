@@ -1,23 +1,23 @@
 package com.fawry.shipping_api.enums;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public enum ErrorCode {
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
-    RESOURCE_ALREADY_EXISTS(HttpStatus.CONFLICT, "Resource already exists"),
-    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Validation failed");
+    ENTITY_NOT_FOUND("404", "Entity not found"),
+    DUPLICATE_RESOURCE("409", "Duplicate resource"),
+    ILLEGAL_ACTION("400", "Illegal action"),
+    MISSING_PARAMETER("400", "Missing request parameter"),
+    TYPE_MISMATCH("400", "Method argument type mismatch"),
+    VALIDATION_ERROR("400", "Validation error");
 
-    private HttpStatus httpStatus;
-    private String defaultMessage;
-    ErrorCode(HttpStatus status, String defaultMessage){
-        this.httpStatus = status;
-        this.defaultMessage = defaultMessage;
+    private final String code;
+    private final String message;
+
+    ErrorCode(String code, String message) {
+        this.code = code;
+        this.message = message;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
-    public String getDefaultMessage() {
-        return defaultMessage;
-    }
 }
