@@ -20,5 +20,5 @@ public interface ShipmentService {
 
     Boolean confirmShipment(ConfirmShipment confirmShipment);
 
-    List<ShipmentDeliveryDetails> getDeliveryListByUserId(Long userId);
+    List<ShipmentDetails> getDeliveryListByUserId(Long userId);
 }

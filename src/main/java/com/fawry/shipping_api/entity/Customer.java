@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "customers")
+@Table(name = "customers", indexes = {
+        @Index(name = "idx_customer_email", columnList = "customer_email")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,11 +20,11 @@ public class Customer {
     @Column(name = "customer_id")
     private Long customerId;
 
-    @Column(name = "governorate_id", nullable = false)
-    private Long governorateId;
+    @Column(name = "governorate", nullable = false)
+    private String governorate;
 
-    @Column(name = "city_id", nullable = false)
-    private Long cityId;
+    @Column(name = "city", nullable = false)
+    private String city;
 
     @Column(name = "customer_name", nullable = false)
     private String name;
@@ -30,7 +32,7 @@ public class Customer {
     @Column(name = "customer_address", nullable = false)
     private String address;
 
-    @Column(name = "customer_email", nullable = false)
+    @Column(name = "customer_email", nullable = false, unique = true)
     private String email;
 
     @Column(name = "customer_phone", nullable = false)

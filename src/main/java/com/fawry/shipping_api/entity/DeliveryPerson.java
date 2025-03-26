@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "delivery_persons")
@@ -28,11 +29,14 @@ public class DeliveryPerson {
     @Column(name = "delivery_email", unique = true)
     private String email;
 
-    @Column(name = "delivery_phone", unique = true)
+    @Column(name = "delivery_phone")
     private String phoneNumber;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @OneToMany(mappedBy = "deliveryPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<DeliveryAssignment> workAreas;
+
+    @OneToMany(mappedBy = "deliveryPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<WorkDay> workDays;  // Relationship managed from DeliveryPerson side
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)

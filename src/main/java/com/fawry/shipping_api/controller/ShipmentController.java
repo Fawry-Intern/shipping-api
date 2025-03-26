@@ -15,7 +15,6 @@ import java.util.List;
 public class ShipmentController {
     private final ShipmentService shipmentService;
 
-    // === Admin Endpoints ===
 
     @PostMapping
     public ResponseEntity<ShipmentDetails> createShipment(
@@ -23,6 +22,7 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.createShipment(createShipment));
     }
 
+    // === Admin Endpoints ===
     @GetMapping
     public ResponseEntity<List<ShipmentDetails>> getShipments() {
         return ResponseEntity.ok(shipmentService.getShipments());
@@ -33,13 +33,13 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.getShipmentById(id));
     }
 
-    @PostMapping("/process/{shipmentId}")
+    @PutMapping("/process/{shipmentId}")
     public ResponseEntity<ShipmentDetails> processShipment(
             @PathVariable Long shipmentId) {
         return ResponseEntity.ok(shipmentService.processShipment(shipmentId));
     }
 
-    @PostMapping("/ship/{shipmentId}")
+    @PutMapping("/ship/{shipmentId}")
     public ResponseEntity<ShipmentDetails> shipShipment(
             @PathVariable Long shipmentId) {
         return ResponseEntity.ok(shipmentService.shipShipment(shipmentId));
@@ -47,14 +47,14 @@ public class ShipmentController {
 
     // === Customer Endpoints ===
 
-    @GetMapping("/track/{id}/{trackingToken}")
+    @PostMapping("/track")
     public ResponseEntity<ShipmentTracking> trackShipment(
-            @PathVariable Long id,
-            @PathVariable String trackingToken) {
-        return ResponseEntity.ok(shipmentService.getShipmentTrackingByToken(id,trackingToken));
+         @Valid  @RequestBody TrackedTokenRequest trackedTokenRequest) {
+        return ResponseEntity.ok(shipmentService.getShipmentTrackingByToken
+                (trackedTokenRequest.id(), trackedTokenRequest.trackingToken()));
     }
 
-    @PostMapping("/cancel/{shipmentId}")
+    @PutMapping("/cancel/{shipmentId}")
     public ResponseEntity<Boolean> cancelShipment(
             @PathVariable Long shipmentId) {
         return ResponseEntity.ok(shipmentService.cancelShipment(shipmentId));
@@ -62,19 +62,15 @@ public class ShipmentController {
 
     // === Delivery Endpoints ===
 
-    @GetMapping("/list-delivery/delivery-email")
-    public ResponseEntity<List<ShipmentDetails>> listDelivery(String deliveryEmail) {
-        return null;
-    }
 
-    @PostMapping("/confirm-delivery")
+    @PutMapping("/confirm-delivery")
     public ResponseEntity<Boolean> confirmDelivery(
-            @RequestBody ConfirmShipment confirmShipment) {
+           @Valid @RequestBody ConfirmShipment confirmShipment) {
         return ResponseEntity.ok(shipmentService.confirmShipment(confirmShipment));
     }
 
     @GetMapping("/list-delivery/{id}")
-    public ResponseEntity<List<ShipmentDeliveryDetails>> getDeliveryListByUserId(
+    public ResponseEntity<List<ShipmentDetails>> getDeliveryListByUserId(
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(shipmentService.getDeliveryListByUserId(id));

@@ -12,7 +12,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "order_shipments")
+@Table(name = "shipments",indexes = {
+        @Index(name = "idx_confirmation_code",columnList = "confirmation_code")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,7 +29,7 @@ public class Shipment {
     private Long orderId;
 
     @OneToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     @ManyToOne
@@ -37,11 +39,11 @@ public class Shipment {
     @Column(name = "tracking_token")
     private String trackingToken;
 
-    @Column(name = "confirmation_code")
+    @Column(name = "confirmation_code",unique = true)
     private String confirmationCode;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status",nullable = false)
     private ShippingStatus status;
 
     @Column(name = "expected_delivery_date")
