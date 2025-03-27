@@ -5,160 +5,61 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <!-- Create customers table -->
-    <changeSet id="create_customers_table" author="sersawy">
-        <createTable tableName="customers">
-            <column name="customer_id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="governorate_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="city_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_name" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_address" type="TEXT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_email" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_phone" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <rollback>
-            <dropTable tableName="customers" cascadeConstraints="true"/>
-        </rollback>
+    <changeSet id="create_customers_table2" author="mustafatarek">
+        <sqlFile path="sql/Customer_v.0.0.0.sql" relativeToChangelogFile="true"/>
+
     </changeSet>
 
-    <!-- Create delivery_persons table -->
-    <changeSet id="create_delivery_persons_table" author="sersawy">
-        <createTable tableName="delivery_persons">
-            <column name="delivery_person_id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="delivery_name" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="delivery_email" type="VARCHAR(255)">
-                <constraints unique="true" nullable="false"/>
-            </column>
-            <column name="delivery_phone" type="VARCHAR(20)">
-                <constraints unique="true" nullable="false"/>
-            </column>
-            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true"/>
-            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <rollback>
-            <dropTable tableName="delivery_persons" cascadeConstraints="true"/>
-        </rollback>
+    <changeSet id="create_order_areas_table2" author="mustafatarek">
+        <sqlFile path="sql/Order_Area_v.0.0.0.sql" relativeToChangelogFile="true"/>
+
+    </changeSet>
+    <changeSet id="create_delivery_persons_table2" author="mustafatarek">
+        <sqlFile path="sql/Delivery_Person_v.0.0.0.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
-    <!-- Create shipments table -->
-    <changeSet id="create_shipments_table" author="sersawy">
-        <createTable tableName="shipments">
-            <column name="shipment_id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="order_id" type="BIGINT">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="customer_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="delivery_person_id" type="BIGINT"/>
-            <column name="tracking_token" type="VARCHAR(255)"/>
-            <column name="confirmation_code" type="VARCHAR(255)"/>
-            <column name="status" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="expected_delivery_date" type="TIMESTAMP WITH TIME ZONE"/>
-            <column name="delivered_at" type="TIMESTAMP WITH TIME ZONE"/>
-            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint baseTableName="shipments"
-                                 baseColumnNames="customer_id"
-                                 referencedTableName="customers"
-                                 referencedColumnNames="customer_id"
-                                 onDelete="CASCADE"
-                                 constraintName="fk_shipments_customer"/>
-        <addForeignKeyConstraint baseTableName="shipments"
-                                 baseColumnNames="delivery_person_id"
-                                 referencedTableName="delivery_persons"
-                                 referencedColumnNames="delivery_person_id"
-                                 onDelete="SET NULL"
-                                 constraintName="fk_shipments_delivery_person"/>
-        <rollback>
-            <dropTable tableName="shipments" cascadeConstraints="true"/>
-        </rollback>
+    <changeSet id="create_delivery_assignments_table2" author="mustafatarek">
+        <sqlFile path="sql/Delivery_Assignment_v.0.0.0.sql" relativeToChangelogFile="true"/>
+
     </changeSet>
 
-    <!-- Create work_areas table -->
-    <changeSet id="create_work_areas_table" author="sersawy">
-        <createTable tableName="work_areas">
-            <column name="work_area_id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="delivery_person_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="governorate_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="city_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint baseTableName="work_areas"
-                                 baseColumnNames="delivery_person_id"
-                                 referencedTableName="delivery_persons"
-                                 referencedColumnNames="delivery_person_id"
-                                 onDelete="CASCADE"
-                                 constraintName="fk_work_areas_delivery_person"/>
-        <rollback>
-            <dropTable tableName="work_areas" cascadeConstraints="true"/>
-        </rollback>
+    <changeSet id="create_work_days_table2" author="mustafatarek">
+        <sqlFile path="sql/Work_Day_v.0.0.0.sql" relativeToChangelogFile="true"/>
+
     </changeSet>
 
-    <!-- Create work_area_days table -->
-    <changeSet id="create_work_area_days_table" author="sersawy">
-        <createTable tableName="work_area_days">
-            <column name="work_area_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="work_day" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint baseTableName="work_area_days"
-                                 baseColumnNames="work_area_id"
-                                 referencedTableName="work_areas"
-                                 referencedColumnNames="work_area_id"
-                                 onDelete="CASCADE"
-                                 constraintName="fk_work_area_days_work_area"/>
-        <rollback>
-            <dropTable tableName="work_area_days" cascadeConstraints="true"/>
-        </rollback>
+
+
+    <changeSet id="create_shipments_table2" author="mustafatarek">
+        <sqlFile path="sql/Shipment_v.0.0.0.sql" relativeToChangelogFile="true"/>
+
     </changeSet>
+
+
+    <changeSet id="add_foreign_keys2" author="mustafatarek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="order_areas" columnName="delivery_person_id"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE order_areas
+                ADD COLUMN IF NOT EXISTS delivery_person_id BIGINT;
+        </sql>
+        <sql>
+            ALTER TABLE order_areas
+                ADD CONSTRAINT fk_work_areas_delivery_person
+                    FOREIGN KEY (delivery_person_id)
+                        REFERENCES delivery_persons(delivery_person_id) ON DELETE CASCADE;
+        </sql>
+        <sql>
+            ALTER TABLE delivery_persons
+                ADD CONSTRAINT fk_delivery_persons_work_area
+                    FOREIGN KEY (order_area_id)
+                        REFERENCES order_areas(order_area_id) ON DELETE SET NULL;
+        </sql>
+    </changeSet>
+
+
 
 </databaseChangeLog>
