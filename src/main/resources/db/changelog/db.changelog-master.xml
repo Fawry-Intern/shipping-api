@@ -36,6 +36,20 @@
     </changeSet>
 
 
+
+
+
+    <changeSet id="modify_delivery_persons_table" author="mustafatarek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="delivery_persons" columnName="address"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS address VARCHAR(255);
+        </sql>
+    </changeSet>
+
     <changeSet id="add_foreign_keys2" author="mustafatarek">
         <preConditions onFail="MARK_RAN">
             <not>

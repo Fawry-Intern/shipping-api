@@ -7,5 +7,6 @@ public record DeliveryPersonDetails(
         Long personId,
         String name,
         String email,
-        String phoneNumber
+        String phoneNumber,
+        String address
 ){ }

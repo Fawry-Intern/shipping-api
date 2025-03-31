@@ -32,6 +32,10 @@ public class DeliveryPerson {
     @Column(name = "delivery_phone")
     private String phoneNumber;
 
+    @Column(name = "delivery_address")
+    private String address;
+
+
     @OneToMany(mappedBy = "deliveryPerson", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DeliveryAssignment> workAreas;
 

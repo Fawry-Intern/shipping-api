@@ -69,6 +69,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         validateStatusTransition(shipment , ShippingStatus.SHIPPED);
 
 
+
         return shipmentMapper.toShipmentDetails(shipment);
     }
 

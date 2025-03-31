@@ -1,5 +1,6 @@
 package com.fawry.shipping_api.controller;
 
+import com.fawry.shipping_api.dto.delivery.DeliveryPersonCreationDetails;
 import com.fawry.shipping_api.dto.shipment.*;
 import com.fawry.shipping_api.service.ShipmentService;
 import jakarta.validation.Valid;
@@ -23,14 +24,10 @@ public class ShipmentController {
     }
 
     // === Admin Endpoints ===
+
     @GetMapping
     public ResponseEntity<List<ShipmentDetails>> getShipments() {
         return ResponseEntity.ok(shipmentService.getShipments());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ShipmentDetails> getShipmentById(@PathVariable Long id) {
-        return ResponseEntity.ok(shipmentService.getShipmentById(id));
     }
 
     @PutMapping("/process/{shipmentId}")
@@ -69,11 +66,11 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.confirmShipment(confirmShipment));
     }
 
-    @GetMapping("/list-delivery/{id}")
+    @GetMapping("/list-delivery/{userId}")
     public ResponseEntity<List<ShipmentDetails>> getDeliveryListByUserId(
-            @PathVariable Long id
+            @PathVariable Long userId
     ) {
-        return ResponseEntity.ok(shipmentService.getDeliveryListByUserId(id));
+        return ResponseEntity.ok(shipmentService.getDeliveryListByUserId(userId));
     }
 
 
