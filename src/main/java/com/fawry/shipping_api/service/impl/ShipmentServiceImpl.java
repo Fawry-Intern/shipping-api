@@ -11,6 +11,8 @@ import com.fawry.shipping_api.enums.ShippingStatus;
 import com.fawry.shipping_api.exception.DuplicateResourceException;
 import com.fawry.shipping_api.exception.EntityNotFoundException;
 import com.fawry.shipping_api.exception.IllegalActionException;
+import com.fawry.shipping_api.kafka.events.ShippingStatusEvent;
+import com.fawry.shipping_api.kafka.producer.ShippingProducer;
 import com.fawry.shipping_api.mapper.CustomerMapper;
 import com.fawry.shipping_api.mapper.ShipmentMapper;
 import com.fawry.shipping_api.repository.ShipmentRepository;
@@ -20,6 +22,7 @@ import com.fawry.shipping_api.service.ShipmentService;
 import com.fawry.shipping_api.service.OrderAreaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +40,13 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final CustomerService customerService;
     private final OrderAreaService orderAreaService;
     private final DeliveryPersonService deliveryPersonService;
+    private final ShippingProducer shippingProducer;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
+    @Value("${frontend.port}")
+    private int frontendPort;
 
     @Override
     public ShipmentDetails getShipmentById(Long id) {
@@ -49,6 +59,11 @@ public class ShipmentServiceImpl implements ShipmentService {
     public ShipmentDetails processShipment(Long shipmentId) {
         Shipment shipment = validateShipmentId(shipmentId);
         validateStatusTransition(shipment , ShippingStatus.PROCESSED);
+
+        ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
+                (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
+                        ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.PROCESSED);
+        shippingProducer.sendEvent(shippingStatusEvent, 0);
         return shipmentMapper.toShipmentDetails(shipment);
     }
 
@@ -68,7 +83,10 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         validateStatusTransition(shipment , ShippingStatus.SHIPPED);
 
-
+        ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
+                (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
+                        ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.SHIPPED);
+        shippingProducer.sendEvent(shippingStatusEvent, 0);
 
         return shipmentMapper.toShipmentDetails(shipment);
     }
@@ -127,11 +145,13 @@ public class ShipmentServiceImpl implements ShipmentService {
                     .build();
             orderAreaService.createWorkArea(workAreaEntity);
         }
-
-
         shipmentRepository.save(shipment);
 
-        // TODO: Send an email to customer with [trackingLink]
+
+        String trackingLink=createNewTrackingLink(shipment.getTrackingToken());
+        ShippingStatusEvent receivingEvent=new ShippingStatusEvent(createShipment.customerDetails().email(),trackingLink,shipment.getConfirmationCode(),createShipment.orderId(),ShippingStatus.RECEIVED);
+        shippingProducer.sendEvent(receivingEvent, 0);
+
 
         return shipmentMapper.toShipmentDetails(shipment);
     }
@@ -174,17 +194,21 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         if(shipment.getStatus() == ShippingStatus.SHIPPED &&
                 shipment.getConfirmationCode().equals(confirmShipment.confirmationCode())) {
+            validateStatusTransition(shipment , ShippingStatus.DELIVERED);
             shipment.setStatus(ShippingStatus.DELIVERED);
+            shipment.setDeliveredAt(LocalDateTime.now());
+            ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
+                    (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
+                            ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.DELIVERED);
+            shippingProducer.sendEvent(shippingStatusEvent, 0);
             return true;
         }
         if(!shipment.getConfirmationCode().equals(confirmShipment.confirmationCode())){
             log.error("The confirmation code doesn't match: {}", confirmShipment.confirmationCode());
             throw new IllegalActionException("The confirmation code doesn't match.");
         }
-        validateStatusTransition(shipment , ShippingStatus.DELIVERED);
 
-        shipment.setDeliveredAt(LocalDateTime.now());
-        return true;
+        return false;
     }
 
     @Override
@@ -217,7 +241,8 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     private boolean canTransitionTo(ShippingStatus currentStatus, ShippingStatus newStatus) {
-        return newStatus.ordinal() - currentStatus.ordinal() == 1;
+      boolean exist=newStatus.ordinal() - currentStatus.ordinal() == 1;
+        return exist;
     }
 
     private String generateTrackingToken() {
@@ -257,5 +282,9 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         throw new EntityNotFoundException("No available delivery person found for shipment ID: " + shipment.getShipmentId());
     }
+    private String createNewTrackingLink(String token) {
+        return String.format("%s:%d/order-tracking?token=%s", frontendUrl, frontendPort, token);
+    }
+
 
 }
