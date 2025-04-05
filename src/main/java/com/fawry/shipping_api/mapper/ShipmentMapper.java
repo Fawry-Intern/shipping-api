@@ -18,6 +18,8 @@ public class ShipmentMapper {
                 .customerDetails(customerMapper.toResponse(shipment.getCustomer()))
                 .deliveryPerson(shipment.getDeliveryPerson() != null ? deliveryMapper.toResponse(shipment.getDeliveryPerson()) : null)
                 .status(shipment.getStatus())
+                .deliveredAt(shipment.getDeliveredAt())
+                .expectedDeliveryDate(shipment.getExpectedDeliveryDate())
                 .build();
     }
 
@@ -31,12 +33,5 @@ public class ShipmentMapper {
                 .build();
     }
 
-    public ShipmentDetails toShipmentDeliveryDetails(Shipment shipment) {
-        return ShipmentDetails.builder()
-                .shipmentId(shipment.getShipmentId())
-                .orderId(shipment.getOrderId())
-                .customerDetails(customerMapper.toResponse(shipment.getCustomer()))
-                .status(shipment.getStatus())
-                .build();
-    }
+
 }

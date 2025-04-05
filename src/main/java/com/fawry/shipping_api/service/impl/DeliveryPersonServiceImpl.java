@@ -27,13 +27,12 @@ public class DeliveryPersonServiceImpl implements DeliveryPersonService {
     private DeliveryPersonRepository deliveryPersonRepository;
 
     @Override
-    public DeliveryPerson getDeliveryPerson(Long id) {
-        return deliveryPersonRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Delivery person retrieval failed. No delivery person found with ID: {}", id);
-                    return new EntityNotFoundException(String.format("Delivery person with ID: %d not found.", id));
-                });
+    public DeliveryPerson getDeliveryPerson(String email) {
+        return deliveryPersonRepository.findByEmail(email);
     }
+
+
+
 
     @Override
     @Transactional

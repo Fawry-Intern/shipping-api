@@ -5,6 +5,7 @@ import com.fawry.shipping_api.dto.shipment.*;
 import com.fawry.shipping_api.service.ShipmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +27,13 @@ public class ShipmentController {
     // === Admin Endpoints ===
 
     @GetMapping
-    public ResponseEntity<List<ShipmentDetails>> getShipments() {
-        return ResponseEntity.ok(shipmentService.getShipments());
+    public ResponseEntity<Page<ShipmentDetails>> getShipments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "shipmentId") String sortBy
+    ) {
+        Page<ShipmentDetails> shipmentDetails=shipmentService.getShipments(page,size,sortBy);
+        return ResponseEntity.ok(shipmentDetails);
     }
 
     @PutMapping("/process/{shipmentId}")
@@ -44,11 +50,9 @@ public class ShipmentController {
 
     // === Customer Endpoints ===
 
-    @PostMapping("/track")
-    public ResponseEntity<ShipmentTracking> trackShipment(
-         @Valid  @RequestBody TrackedTokenRequest trackedTokenRequest) {
-        return ResponseEntity.ok(shipmentService.getShipmentTrackingByToken
-                (trackedTokenRequest.id(), trackedTokenRequest.trackingToken()));
+    @GetMapping("/track")
+    public ResponseEntity<ShipmentTracking> trackShipment(@RequestParam String trackingToken) {
+        return ResponseEntity.ok(shipmentService.getShipmentTrackingByToken(trackingToken));
     }
 
     @PutMapping("/cancel/{shipmentId}")
@@ -66,11 +70,11 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.confirmShipment(confirmShipment));
     }
 
-    @GetMapping("/list-delivery/{userId}")
-    public ResponseEntity<List<ShipmentDetails>> getDeliveryListByUserId(
-            @PathVariable Long userId
+    @GetMapping("/list-delivery")
+    public ResponseEntity<List<ShipmentDetails>> getDeliveryListByEmail(
+            @RequestParam String email
     ) {
-        return ResponseEntity.ok(shipmentService.getDeliveryListByUserId(userId));
+        return ResponseEntity.ok(shipmentService.getDeliveryListByEmail(email));
     }
 
 

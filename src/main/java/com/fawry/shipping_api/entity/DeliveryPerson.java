@@ -49,4 +49,6 @@ public class DeliveryPerson {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+
 }

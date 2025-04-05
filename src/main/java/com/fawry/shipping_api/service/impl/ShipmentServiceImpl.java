@@ -23,6 +23,10 @@ import com.fawry.shipping_api.service.OrderAreaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,11 +52,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Value("${frontend.port}")
     private int frontendPort;
 
-    @Override
-    public ShipmentDetails getShipmentById(Long id) {
-        Shipment shipment = validateShipmentId(id);
-        return shipmentMapper.toShipmentDetails(shipment);
-    }
+
 
     @Override
     @Transactional
@@ -83,6 +83,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         validateStatusTransition(shipment , ShippingStatus.SHIPPED);
 
+
         ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
                 (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
                         ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.SHIPPED);
@@ -92,14 +93,16 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     @Override
-    public ShipmentTracking getShipmentTrackingByToken(Long id, String trackingToken) {
-        Shipment shipment = validateShipmentId(id);
-        if(!shipment.getTrackingToken().equals(trackingToken)) {
-            log.error("Invalid trackingToken");
-            throw new IllegalActionException("Invalid trackingToken");
+    public ShipmentTracking getShipmentTrackingByToken(String trackingToken) {
+        Optional<Shipment> shipment = shipmentRepository.findByTrackingToken(trackingToken);
+
+        if(shipment.isEmpty())
+        {
+            log.error("Invalid Tracking Token");
+            throw new IllegalActionException("Invalid Tracking Token");
         }
 
-        return shipmentMapper.toShipmentTracking(shipment);
+        return shipmentMapper.toShipmentTracking(shipment.get());
     }
 
 
@@ -157,12 +160,12 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     @Override
-    public List<ShipmentDetails> getShipments() {
-        List<Shipment> shipmentDetailsList = shipmentRepository.findAll();
-        return shipmentDetailsList.stream()
-                .map(shipmentMapper::toShipmentDetails)
-                .toList();
+    public Page<ShipmentDetails> getShipments(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
+        Page<Shipment> shipmentPage = shipmentRepository.findAll(pageable);
+        return shipmentPage.map(shipmentMapper::toShipmentDetails);
     }
+
 
     @Override
     @Transactional
@@ -212,11 +215,10 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     @Override
-    public List<ShipmentDetails> getDeliveryListByUserId(Long userId) {
-        DeliveryPerson person = deliveryPersonService.getDeliveryPerson(userId);
-        List<Shipment> shipmentList = shipmentRepository.findByDeliveryPersonPersonId(person.getPersonId());
+    public List<ShipmentDetails> getDeliveryListByEmail(String email) {
+        DeliveryPerson person = deliveryPersonService.getDeliveryPerson(email);
+        List<Shipment> shipmentList = shipmentRepository.findByDeliveryListByUserId(person.getPersonId(),ShippingStatus.SHIPPED);
         return shipmentList.stream()
-                .filter(shipment -> shipment.getStatus() == ShippingStatus.SHIPPED)
                 .map(shipmentMapper::toShipmentDetails)
                 .toList();
     }
@@ -241,8 +243,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     private boolean canTransitionTo(ShippingStatus currentStatus, ShippingStatus newStatus) {
-      boolean exist=newStatus.ordinal() - currentStatus.ordinal() == 1;
-        return exist;
+        return newStatus.ordinal() - currentStatus.ordinal() == 1;
     }
 
     private String generateTrackingToken() {
@@ -272,6 +273,9 @@ public class ShipmentServiceImpl implements ShipmentService {
                 DeliveryPerson assignedPerson = deliveryPeople.get(random.nextInt(deliveryPeople.size()));
                 shipment.setDeliveryPerson(assignedPerson);
 
+                LocalDateTime expectedDate=date.plusDays(count);
+                shipment.setExpectedDeliveryDate(expectedDate);
+
                 log.info("Assigned delivery person: {}",assignedPerson.getName());
                 return assignedPerson;
             }
@@ -283,7 +287,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         throw new EntityNotFoundException("No available delivery person found for shipment ID: " + shipment.getShipmentId());
     }
     private String createNewTrackingLink(String token) {
-        return String.format("%s:%d/order-tracking?token=%s", frontendUrl, frontendPort, token);
+        return String.format("%s:%d/customer/order-tracking?token=%s", frontendUrl, frontendPort, token);
     }
 
 
