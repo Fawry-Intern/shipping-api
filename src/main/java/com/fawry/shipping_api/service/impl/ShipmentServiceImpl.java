@@ -11,6 +11,7 @@ import com.fawry.shipping_api.enums.ShippingStatus;
 import com.fawry.shipping_api.exception.DuplicateResourceException;
 import com.fawry.shipping_api.exception.EntityNotFoundException;
 import com.fawry.shipping_api.exception.IllegalActionException;
+import com.fawry.shipping_api.kafka.events.ShippingDetailsEvent;
 import com.fawry.shipping_api.kafka.events.ShippingStatusEvent;
 import com.fawry.shipping_api.kafka.producer.ShippingProducer;
 import com.fawry.shipping_api.mapper.CustomerMapper;
@@ -60,10 +61,11 @@ public class ShipmentServiceImpl implements ShipmentService {
         Shipment shipment = validateShipmentId(shipmentId);
         validateStatusTransition(shipment , ShippingStatus.PROCESSED);
 
-        ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
+        ShippingStatusEvent shippingStatusEvent= new ShippingStatusEvent
                 (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
                         ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.PROCESSED);
-        shippingProducer.sendEvent(shippingStatusEvent, 0);
+
+        shippingProducer.sendShippingStatusEvent(shippingStatusEvent, 0);
         return shipmentMapper.toShipmentDetails(shipment);
     }
 
@@ -87,7 +89,13 @@ public class ShipmentServiceImpl implements ShipmentService {
         ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
                 (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
                         ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.SHIPPED);
-        shippingProducer.sendEvent(shippingStatusEvent, 0);
+        shippingProducer.sendShippingStatusEvent(shippingStatusEvent, 0);
+
+
+        ShippingDetailsEvent shippingDetailsEvent=
+                shipmentMapper.toShipmentDetailsEvent(shipment);
+        shippingProducer.sendShippingDetailsEvent(shippingDetailsEvent, 0);
+
 
         return shipmentMapper.toShipmentDetails(shipment);
     }
@@ -152,8 +160,16 @@ public class ShipmentServiceImpl implements ShipmentService {
 
 
         String trackingLink=createNewTrackingLink(shipment.getTrackingToken());
-        ShippingStatusEvent receivingEvent=new ShippingStatusEvent(createShipment.customerDetails().email(),trackingLink,shipment.getConfirmationCode(),createShipment.orderId(),ShippingStatus.RECEIVED);
-        shippingProducer.sendEvent(receivingEvent, 0);
+
+        ShippingStatusEvent receivingEvent=
+           ShippingStatusEvent.builder()
+                   .email(createShipment.customerDetails().email())
+                   .trackingLink(trackingLink)
+                   .confirmationCode(shipment.getConfirmationCode())
+                   .orderId(createShipment.orderId())
+                   .shippingStatus(ShippingStatus.RECEIVED)
+                           .build();
+        shippingProducer.sendShippingStatusEvent(receivingEvent, 0);
 
 
         return shipmentMapper.toShipmentDetails(shipment);
@@ -200,10 +216,11 @@ public class ShipmentServiceImpl implements ShipmentService {
             validateStatusTransition(shipment , ShippingStatus.DELIVERED);
             shipment.setStatus(ShippingStatus.DELIVERED);
             shipment.setDeliveredAt(LocalDateTime.now());
+
             ShippingStatusEvent shippingStatusEvent=new ShippingStatusEvent
                     (shipment.getCustomer().getEmail(),createNewTrackingLink(shipment.getTrackingToken())
                             ,shipment.getConfirmationCode(),shipment.getOrderId(),ShippingStatus.DELIVERED);
-            shippingProducer.sendEvent(shippingStatusEvent, 0);
+            shippingProducer.sendShippingStatusEvent(shippingStatusEvent, 0);
             return true;
         }
         if(!shipment.getConfirmationCode().equals(confirmShipment.confirmationCode())){

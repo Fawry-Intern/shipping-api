@@ -1,27 +1,22 @@
 package com.fawry.shipping_api.kafka.events;
 
 import com.fawry.shipping_api.enums.ShippingStatus;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
+@Getter
+@SuperBuilder
 public abstract class ShippingBaseEvent {
-    private final String email;
+
     private final Long orderId;
     private final ShippingStatus shippingStatus;
-    public ShippingBaseEvent(String email, Long orderId, ShippingStatus shippingStatus) {
-        this.email = email;
+    public ShippingBaseEvent( Long orderId, ShippingStatus shippingStatus) {
+
         this.orderId = orderId;
         this.shippingStatus = shippingStatus;
     }
 
-    public String getEmail() {
-        return email;
-    }
 
 
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public ShippingStatus getShippingStatus() {
-        return shippingStatus;
-    }
 }

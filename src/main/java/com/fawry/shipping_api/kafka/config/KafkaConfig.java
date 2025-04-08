@@ -7,12 +7,22 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaConfig {
+
     @Bean
-    public NewTopic userTopic() {
+    public NewTopic shippingStatusTopic() {
         return TopicBuilder
-                .name("shipping-events")
+                .name("shipping-status-events")
                 .partitions(2)
-                .replicas((short)1)
+                .replicas((short) 1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic shippingDetailsTopic() {
+        return TopicBuilder
+                .name("shipping-details-events")
+                .partitions(2)
+                .replicas((short) 1)
                 .build();
     }
 }

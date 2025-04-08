@@ -3,6 +3,7 @@ package com.fawry.shipping_api.mapper;
 import com.fawry.shipping_api.dto.shipment.ShipmentDetails;
 import com.fawry.shipping_api.dto.shipment.ShipmentTracking;
 import com.fawry.shipping_api.entity.Shipment;
+import com.fawry.shipping_api.kafka.events.ShippingDetailsEvent;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,17 @@ public class ShipmentMapper {
                 .customerDetails(customerMapper.toResponse(shipment.getCustomer()))
                 .deliveryPerson(shipment.getDeliveryPerson() != null ? deliveryMapper.toResponse(shipment.getDeliveryPerson()) : null)
                 .status(shipment.getStatus())
+                .deliveredAt(shipment.getDeliveredAt())
+                .expectedDeliveryDate(shipment.getExpectedDeliveryDate())
+                .build();
+    }
+    public ShippingDetailsEvent toShipmentDetailsEvent(Shipment shipment) {
+        return ShippingDetailsEvent.builder()
+                .shipmentId(shipment.getShipmentId())
+                .orderId(shipment.getOrderId())
+                .customerDetails(customerMapper.toResponse(shipment.getCustomer()))
+                .deliveryPerson(shipment.getDeliveryPerson() != null ? deliveryMapper.toResponse(shipment.getDeliveryPerson()) : null)
+                .shippingStatus(shipment.getStatus())
                 .deliveredAt(shipment.getDeliveredAt())
                 .expectedDeliveryDate(shipment.getExpectedDeliveryDate())
                 .build();

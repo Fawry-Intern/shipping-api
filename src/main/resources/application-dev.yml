@@ -34,7 +34,8 @@ spring:
       properties:
         spring.json.add.type.headers: true
         spring.json.type.mapping:
-                 shippingStatusEvent:com.fawry.shipping_api.kafka.events.ShippingStatusEvent
+                 shippingStatusEvent:com.fawry.shipping_api.kafka.events.ShippingStatusEvent,
+                shippingDetailsEvent:com.fawry.shipping_api.kafka.events.ShippingDetailsEvent
         acks: all
         retries: 3
 
