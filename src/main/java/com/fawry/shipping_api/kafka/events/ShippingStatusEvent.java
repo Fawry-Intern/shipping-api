@@ -2,7 +2,6 @@ package com.fawry.shipping_api.kafka.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fawry.shipping_api.enums.ShippingStatus;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 

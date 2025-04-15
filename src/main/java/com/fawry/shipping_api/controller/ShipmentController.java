@@ -17,13 +17,6 @@ import java.util.List;
 public class ShipmentController {
     private final ShipmentService shipmentService;
 
-
-    @PostMapping
-    public ResponseEntity<ShipmentDetails> createShipment(
-            @Valid @RequestBody CreateShipment createShipment) {
-        return ResponseEntity.ok(shipmentService.createShipment(createShipment));
-    }
-
     // === Admin Endpoints ===
 
     @GetMapping

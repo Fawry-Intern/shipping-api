@@ -1,11 +1,16 @@
 server:
-  port: 3031
+  port: 5555
+
+frontend:
+  url: http://localhost
+  port: 4200
+
 spring:
   datasource:
     driver: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/shipping_db
     username: postgres
-    password: postgres
+    password: 12345
 
   jpa:
     properties:
@@ -20,6 +25,35 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
+  # Kafka Config
+  kafka:
+    listener:
+      missing-topics-fatal: false
+      ack-mode: RECORD
+    consumer:
+      enable-auto-commit: true
+      bootstrap-servers: localhost:9092
+      group-id: ship_payment_id
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        allow.auto.create.topics: true
+        spring.json.trusted.packages: "com.fawry.kafka.events"
+        spring.json.type.mapping:
+          paymentCreatedEventDTO:com.fawry.shipping_api.kafka.events.PaymentCreatedEventDTO
+
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+        spring.json.type.mapping:
+          shippingStatusEvent:com.fawry.shipping_api.kafka.events.ShippingStatusEvent,
+          shippingDetailsEvent:com.fawry.shipping_api.kafka.events.ShippingDetailsEvent
+        acks: all
+        retries: 3
 
 eureka:
   client:

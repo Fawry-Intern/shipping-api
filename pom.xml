@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.4.3</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.fawry</groupId>
 	<artifactId>Shipping-API</artifactId>
@@ -97,9 +97,8 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<version>1.18.32</version> <!-- حدد الإصدار بشكل صريح -->
+							<version>1.18.32</version>
 						</path>
-						<!-- أضف معالجات أخرى مطلوبة (مثل Spring Boot) -->
 						<path>
 							<groupId>org.springframework.boot</groupId>
 							<artifactId>spring-boot-configuration-processor</artifactId>
