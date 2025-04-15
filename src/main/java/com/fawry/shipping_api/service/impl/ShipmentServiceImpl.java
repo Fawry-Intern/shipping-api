@@ -1,5 +1,6 @@
 package com.fawry.shipping_api.service.impl;
 
+import com.fawry.shipping_api.dto.customer.CustomerDetails;
 import com.fawry.shipping_api.dto.shipment.*;
 import com.fawry.shipping_api.entity.Customer;
 import com.fawry.shipping_api.entity.DeliveryPerson;
@@ -11,6 +12,7 @@ import com.fawry.shipping_api.enums.ShippingStatus;
 import com.fawry.shipping_api.exception.DuplicateResourceException;
 import com.fawry.shipping_api.exception.EntityNotFoundException;
 import com.fawry.shipping_api.exception.IllegalActionException;
+import com.fawry.shipping_api.kafka.events.PaymentCreatedEventDTO;
 import com.fawry.shipping_api.kafka.events.ShippingDetailsEvent;
 import com.fawry.shipping_api.kafka.events.ShippingStatusEvent;
 import com.fawry.shipping_api.kafka.producer.ShippingProducer;
@@ -28,6 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +55,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Value("${frontend.port}")
     private int frontendPort;
+
+
 
 
 
@@ -113,66 +118,77 @@ public class ShipmentServiceImpl implements ShipmentService {
         return shipmentMapper.toShipmentTracking(shipment.get());
     }
 
+    @Override
+    @KafkaListener(topics = "payment-created-events", groupId = "ship_payment_id")
+    public void shipOrder(PaymentCreatedEventDTO paymentCreatedEvent) {
+        log.info("Received PaymentCreatedEventDTO for order: {}", paymentCreatedEvent.getOrderId());
+        var customerDetails = mergeShippingDetails((paymentCreatedEvent));
+        createShipment(customerDetails);
+    }
 
     @Override
     @Transactional
     public ShipmentDetails createShipment(CreateShipment createShipment) {
-        shipmentRepository.findByOrderId(createShipment.orderId())
-                .ifPresent(shipment -> {
-                    log.error("Shipment creation failed. A shipment already exists with order ID: {}", createShipment.orderId());
-                    throw new DuplicateResourceException(String.format("Shipment creation failed. A shipment already exists with order ID: %s", createShipment.orderId()), ResourceType.SHIPMENT);
-                });
+            shipmentRepository.findByOrderId(createShipment.orderId())
+                    .ifPresent(shipment -> {
+                        log.error("Shipment creation failed. A shipment already exists with order ID: {}", createShipment.orderId());
+                        throw new DuplicateResourceException(String.format("Shipment creation failed. A shipment already exists with order ID: %s", createShipment.orderId()), ResourceType.SHIPMENT);
+                    });
 
-        Optional<Customer> existingCustomerOpt = customerService.findByEmail(createShipment.customerDetails().email());
-        Customer customer;
+            Optional<Customer> existingCustomerOpt = customerService.findByEmail(createShipment.customerDetails().email());
+            Customer customer;
 
-        if (existingCustomerOpt.isPresent()) {
+            if (existingCustomerOpt.isPresent()) {
 
-            customer = existingCustomerOpt.get();
-            customer.setName(createShipment.customerDetails().name());
-            customer.setPhoneNumber(createShipment.customerDetails().phone());
-            customer.setCity(createShipment.customerDetails().city());
-            customer.setGovernorate(createShipment.customerDetails().governorate());
-            customerService.update(customer);
-        } else {
+                customer = existingCustomerOpt.get();
+                customer.setName(createShipment.customerDetails().name());
+                customer.setPhoneNumber(createShipment.customerDetails().phone());
+                customer.setCity(createShipment.customerDetails().city());
+                customer.setGovernorate(createShipment.customerDetails().governorate());
+                customerService.update(customer);
+            } else {
 
-            customer = customerMapper.toEntity(createShipment.customerDetails());
-            customer = customerService.create(createShipment.customerDetails());
-        }
+                customer = customerMapper.toEntity(createShipment.customerDetails());
+                customer = customerService.create(createShipment.customerDetails());
+            }
 
-        Shipment shipment = Shipment.builder()
-                .orderId(createShipment.orderId())
-                .customer(customer)
-                .status(ShippingStatus.RECEIVED)
-                .confirmationCode(generateConfirmationCode())
-                .trackingToken(generateTrackingToken())
-                .build();
-
-        Optional<OrderArea> workAreaOpt = orderAreaService.findByCity(customer.getCity());
-        if (workAreaOpt.isEmpty()) {
-            OrderArea workAreaEntity = OrderArea.builder()
-                    .governorate(customer.getGovernorate())
-                    .city(customer.getCity())
+            Shipment shipment = Shipment.builder()
+                    .orderId(createShipment.orderId())
+                    .customer(customer)
+                    .status(ShippingStatus.RECEIVED)
+                    .confirmationCode(generateConfirmationCode())
+                    .trackingToken(generateTrackingToken())
                     .build();
-            orderAreaService.createWorkArea(workAreaEntity);
-        }
-        shipmentRepository.save(shipment);
+
+            Optional<OrderArea> workAreaOpt = orderAreaService.findByCity(customer.getCity());
+            if (workAreaOpt.isEmpty()) {
+                OrderArea workAreaEntity = OrderArea.builder()
+                        .governorate(customer.getGovernorate())
+                        .city(customer.getCity())
+                        .build();
+                orderAreaService.createWorkArea(workAreaEntity);
+            }
+            shipmentRepository.save(shipment);
 
 
-        String trackingLink=createNewTrackingLink(shipment.getTrackingToken());
+            String trackingLink=createNewTrackingLink(shipment.getTrackingToken());
 
-        ShippingStatusEvent receivingEvent=
-           ShippingStatusEvent.builder()
-                   .email(createShipment.customerDetails().email())
-                   .trackingLink(trackingLink)
-                   .confirmationCode(shipment.getConfirmationCode())
-                   .orderId(createShipment.orderId())
-                   .shippingStatus(ShippingStatus.RECEIVED)
-                           .build();
-        shippingProducer.sendShippingStatusEvent(receivingEvent, 0);
+            ShippingStatusEvent receivingEvent=
+                    ShippingStatusEvent.builder()
+                            .email(createShipment.customerDetails().email())
+                            .trackingLink(trackingLink)
+                            .confirmationCode(shipment.getConfirmationCode())
+                            .orderId(createShipment.orderId())
+                            .shippingStatus(ShippingStatus.RECEIVED)
+                            .build();
+            shippingProducer.sendShippingStatusEvent(receivingEvent, 0);
 
 
-        return shipmentMapper.toShipmentDetails(shipment);
+            return shipmentMapper.toShipmentDetails(shipment);
+    }
+
+    private CreateShipment mergeShippingDetails(PaymentCreatedEventDTO paymentCreatedEventDTO) {
+        return shipmentMapper.toShippingOrderDetails(paymentCreatedEventDTO);
     }
 
     @Override
@@ -202,6 +218,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         // TODO: call Order API to cancel this order
 
         shipment.setStatus(ShippingStatus.CANCELLED);
+        // Cancel :
 
         return true;
     }

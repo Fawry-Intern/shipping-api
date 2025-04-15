@@ -2,6 +2,7 @@ package com.fawry.shipping_api.mapper;
 
 import com.fawry.shipping_api.dto.customer.CustomerDetails;
 import com.fawry.shipping_api.entity.Customer;
+import com.fawry.shipping_api.kafka.events.PaymentCreatedEventDTO;
 import lombok.Builder;
 import org.springframework.stereotype.Component;
 
@@ -32,4 +33,6 @@ public class CustomerMapper {
                 .name(customer.getName())
                 .build();
     }
+
+
 }

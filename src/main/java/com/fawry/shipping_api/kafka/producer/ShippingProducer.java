@@ -10,6 +10,8 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+
+
 @Service
 public class ShippingProducer<T extends ShippingBaseEvent> {
     private final Logger log = LoggerFactory.getLogger(ShippingProducer.class);
